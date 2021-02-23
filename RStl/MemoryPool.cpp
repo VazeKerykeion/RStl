@@ -15,7 +15,12 @@ MemoryBlock::MemoryBlock(USHORT _nTypes, USHORT _nUnitSize)
 MemoryBlock::~MemoryBlock()
 {
 }
-MemoryPool::MemoryPool(USHORT _nUnitSize, USHORT _nInitSize, USHORT _nGrowSize):pBlock(nullptr),nInitSize(_nInitSize),nGrowSize(_nGrowSize) {
+MemoryPool::MemoryPool(USHORT _nUnitSize, USHORT _nGrowSize): pBlock(nullptr),nGrowSize(_nGrowSize) {
+	pBlock = (MemoryBlock**)malloc(sizeof(MemoryBlock*) * 16);
+	for (int i = 0; i < 16; i++) {
+		pBlock[i] = nullptr;
+	}
+
 	if (_nUnitSize > MEMPOOL_ALIGNMENT) {
 		nUnitSize = (_nUnitSize + (MEMPOOL_ALIGNMENT - 1)) & ~(MEMPOOL_ALIGNMENT - 1);
 	}
@@ -25,73 +30,98 @@ MemoryPool::MemoryPool(USHORT _nUnitSize, USHORT _nInitSize, USHORT _nGrowSize):
 }
 
 void* MemoryPool::Alloc(USHORT _size) {
-	if (!pBlock) {
-		if (!nInitSize) return nullptr;
-		MemoryBlock* pMyBlock = new(nInitSize, nUnitSize) MemoryBlock(nInitSize, nUnitSize);
+	if (_size >= 128) return HeapAlloc(_size);
+	USHORT index = _size / 8;
+	USHORT UnitSize = nUnitSize * (index + 1)+2;
+	USHORT GrowSize = nGrowSize / UnitSize;
+ 	if (!pBlock[index]) {
+		if (!GrowSize) return nullptr;
+		MemoryBlock* pMyBlock = new(GrowSize, UnitSize) MemoryBlock(GrowSize, UnitSize);
 		if (!pMyBlock) return nullptr;
-		pMyBlock->pNext = pBlock;
-		pBlock = pMyBlock;
-		return (void*)(pMyBlock->aData);
+		pMyBlock->pNext = pBlock[index];
+		pBlock[index] = pMyBlock;
+		return (void*)(pMyBlock->aData+2);
 	}
-	MemoryBlock* pMyBlock = pBlock;
+	MemoryBlock* pMyBlock = pBlock[index];
 	while (pMyBlock && !pMyBlock->nFree) {
 		pMyBlock = pMyBlock->pNext;
 	}
 	if (pMyBlock) {
-		char* pFree = pMyBlock->aData + (pMyBlock->nFirst * nUnitSize);
+		char* pFree = pMyBlock->aData + (pMyBlock->nFirst * UnitSize);
 		pMyBlock->nFirst = *((USHORT*)pFree);
 		pMyBlock->nFree--;
-		return (void*)pFree;
+		return (void*)(pFree+2);
 	}
 	else {
-		if (!nGrowSize) return nullptr;
-		pMyBlock = new(nGrowSize, nUnitSize) MemoryBlock(nGrowSize, nUnitSize);
+		if (!GrowSize) return nullptr;
+		pMyBlock = new(GrowSize, UnitSize) MemoryBlock(GrowSize, UnitSize);
 		if (!pMyBlock) return nullptr;
-		pMyBlock->pNext = pBlock;
-		pBlock = pMyBlock;
-		return (void*)(pMyBlock->aData);
+		pMyBlock->pNext = pBlock[index];
+		pBlock[index] = pMyBlock;
+		return (void*)(pMyBlock->aData+2);
 
 	}
 	return nullptr;
 }
-void MemoryPool::Free(void* pFree) {
-	MemoryBlock* pMyBlock = pBlock;
+void* MemoryPool::HeapAlloc(USHORT _size) {
+
+}
+ErrorType MemoryPool::Free(void* pFree) {
+	if (pFree == nullptr) return ErrorType::NullPointer;
+	pFree = (char*)pFree - 2;
+	for (int i = 0; i < 16; i++) {
+		MemoryBlock* pMyBlock = pBlock[i];
+		if (pMyBlock == nullptr) continue;
+		while (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
+			((ULONG)pFree >= ((ULONG)pMyBlock->aData + pMyBlock->nSize)))
+		{
+			pMyBlock = pMyBlock->pNext;
+		}
+		if (pMyBlock != nullptr) {
+			pMyBlock->nFree++;
+			*((USHORT*)pFree) = pMyBlock->nFirst;
+			pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pBlock[i]->aData)) / nUnitSize);
+			return ErrorType::Success;
+		}
+		else {
+			free(pFree);
+			return ErrorType::Success;
+		}
+	}
+}
+ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
+	if (pFree == nullptr) return ErrorType::NullPointer;
+	if (_size >= 128) {
+		free(pFree);
+		return ErrorType::Success;
+	}
+	USHORT index = _size / 8;
+	MemoryBlock* pMyBlock = pBlock[index];
 	while (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
 		((ULONG)pFree >= ((ULONG)pMyBlock->aData + pMyBlock->nSize)))
 	{
-		 pMyBlock = pMyBlock->pNext;
+		pMyBlock = pMyBlock->pNext;
 	}
-	pMyBlock->nFree++;
-	*((USHORT*)pFree) = pMyBlock->nFirst;
-	pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pBlock->aData)) / nUnitSize);
-	if (pMyBlock->nFree * nUnitSize == pMyBlock->nSize)
-	{
-		MemoryBlock* tBlock = pBlock;
-		if (tBlock != pMyBlock) {
-			while (tBlock->pNext != pMyBlock) {
-				tBlock = tBlock->pNext;
-			}
-		}
-		tBlock->pNext = pMyBlock->pNext;
-		if (tBlock != pMyBlock) {
-			delete pMyBlock;
-			pMyBlock = nullptr;
-		}
-		else {
-			delete pMyBlock;
-			pMyBlock = nullptr;
-			tBlock = nullptr;
-			pBlock = nullptr;
-		}
+	if (pMyBlock != nullptr) {
+		pMyBlock->nFree++;
+		*((USHORT*)pFree) = pMyBlock->nFirst;
+		pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pBlock[index]->aData)) / nUnitSize);
+		return ErrorType::Success;
+	}
+	else {
+		free(pFree);
+		return ErrorType::Success;
 	}
 	
 }
 MemoryPool::~MemoryPool() {
-	MemoryBlock* pMyBlock = pBlock;
-	MemoryBlock* t = pMyBlock;
-	while (pMyBlock) {
-		t = pMyBlock;
-		pMyBlock = pMyBlock->pNext;
-		delete t;
+	for (int i = 0; i < 16; i++) {
+		MemoryBlock* pMyBlock = pBlock[i];
+		MemoryBlock* t = pMyBlock;
+		while (pMyBlock) {
+			t = pMyBlock;
+			pMyBlock = pMyBlock->pNext;
+			delete t;
+		}
 	}
 }

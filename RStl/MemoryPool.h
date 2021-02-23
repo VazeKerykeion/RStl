@@ -1,7 +1,14 @@
 #pragma once
+#include<memory>
 #define MEMPOOL_ALIGNMENT 8
 #define USHORT unsigned short
 #define ULONG unsigned long
+enum class ErrorType
+{
+	Success,
+	NullPointer,
+	NotExist
+};
 struct MemoryBlock
 {
 	USHORT nSize;
@@ -25,14 +32,15 @@ struct MemoryBlock
 class MemoryPool
 {
 private:
-	MemoryBlock* pBlock;
+	MemoryBlock** pBlock;
 	USHORT nUnitSize;
-	USHORT nInitSize;
 	USHORT nGrowSize;
 public:
-	MemoryPool(USHORT _nUintSize, USHORT _nInitSize = 128, USHORT _nGrowSize = 128);
+	MemoryPool(USHORT _nUintSize=8, USHORT _nGrowSize = 1024);
 	~MemoryPool();
 	void* Alloc(USHORT _size);
-	void Free(void* p);
+	void* HeapAlloc(USHORT _size);
+	ErrorType Free(void* p);
+	ErrorType Free(void* p, USHORT _size);
 };
 
