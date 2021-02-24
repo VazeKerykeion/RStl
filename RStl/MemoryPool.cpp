@@ -15,6 +15,7 @@ MemoryBlock::MemoryBlock(USHORT _nTypes, USHORT _nUnitSize)
 
 MemoryBlock::~MemoryBlock()
 {
+
 }
 
 MemoryPool::MemoryPool(USHORT _nUnitSize, USHORT _nGrowSize): pBlock(nullptr),nGrowSize(_nGrowSize) {
@@ -110,7 +111,7 @@ ErrorType MemoryPool::Free(void* pFree) {
 		if (pMyBlock != nullptr) {
 			pMyBlock->nFree++;
 			*((USHORT*)pFree) = pMyBlock->nFirst;
-			pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pool.pBlock[i]->aData)) / pool.nUnitSize);
+			pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pool.pBlock[i]->aData)) / (pool.nUnitSize*(i+1)));
 			return ErrorType::Success;
 		}
 	}
@@ -126,6 +127,7 @@ ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
 		free(pFree);
 		return ErrorType::Success;
 	}
+	pFree = (char*)pFree - 2;
 	USHORT index = (_size-1) / pool.nUnitSize;
 	MemoryBlock* pMyBlock = pool.pBlock[index];
 	while (pMyBlock != nullptr && (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
@@ -136,7 +138,7 @@ ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
 	if (pMyBlock != nullptr) {
 		pMyBlock->nFree++;
 		*((USHORT*)pFree) = pMyBlock->nFirst;
-		pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pool.pBlock[index]->aData)) / pool.nUnitSize);
+		pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pool.pBlock[index]->aData)) / (pool.nUnitSize*(index+1)));
 		return ErrorType::Success;
 	}
 

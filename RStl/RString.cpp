@@ -192,7 +192,9 @@ bool RStl::operator>=(const RString& a, const RString& b) {
 }
 RStl::RString RStl::operator+(const RString& a, const RString& b) {
 	RString r(a);
+
 	return r.push_back(b);
+
 }
 
 std::wostream& RStl::operator<<(std::wostream& os, const RString& s)
