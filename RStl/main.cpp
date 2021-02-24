@@ -8,7 +8,7 @@ class a {};
 
 int main()
 {
-	RString test("hello");
+	RStl::RString test("hello");
 	test.insert(5,",world");
 
 	std::cout << test;

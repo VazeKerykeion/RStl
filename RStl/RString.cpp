@@ -1,5 +1,4 @@
 #include "RString.h"
-static MemoryPool pool(8,1024);
 
 template<typename _Sp>
 int str_len(const _Sp* s) {
@@ -19,55 +18,55 @@ int str_len(const char32_t* s) {
 	}
 	return r;
 }
-RString::RString() :_buf_(nullptr), _len_(0),_cap_(0) {
+RStl::RString::RString() :_buf_(nullptr), _len_(0),_cap_(0) {
 
 }
-RString::~RString() {
-	ErrorType e=pool.Free(_buf_,_cap_*2);
+RStl::RString::~RString() {
+	ErrorType e=MemoryPool::Free(_buf_,_cap_*2);
 	_buf_ = nullptr;
 	_len_ = 0;
 }
 
-RString::RString(const RString& s) :_buf_(nullptr), _len_(0), _cap_(0) {
+RStl::RString::RString(const RString& s) :_buf_(nullptr), _len_(0), _cap_(0) {
 	assign_str(s._buf_);
 }
-RString::RString(const char* s) : _buf_(nullptr), _len_(0), _cap_(0) {
+RStl::RString::RString(const char* s) : _buf_(nullptr), _len_(0), _cap_(0) {
 	assign_str(s);
 }
-RString::RString(const wchar_t* s) : _buf_(nullptr), _len_(0), _cap_(0) {
+RStl::RString::RString(const wchar_t* s) : _buf_(nullptr), _len_(0), _cap_(0) {
 	assign_str(s);
 }
-RString::RString(const char16_t* s) : _buf_(nullptr), _len_(0), _cap_(0) {
+RStl::RString::RString(const char16_t* s) : _buf_(nullptr), _len_(0), _cap_(0) {
 	assign_str(s);
 }
-RString::RString(const char32_t* s) : _buf_(nullptr), _len_(0), _cap_(0) {
+RStl::RString::RString(const char32_t* s) : _buf_(nullptr), _len_(0), _cap_(0) {
 	assign_str(s);
 }
-RString& RString::operator=(const RString& s) {
+RStl::RString& RStl::RString::operator=(const RString& s) {
 	assign_str(s._buf_);
 	return *this;
 }
 
 /*---------------Element access---------------*/
-wchar_t& RString::at(int index) {
+wchar_t& RStl::RString::at(int index) {
 	if (index >= _len_ || index<0) {
 		throw std::out_of_range("Out of range");
 	}
 	return (wchar_t&)_buf_[index];
 }
-wchar_t& RString::operator[](int index) {
+wchar_t& RStl::RString::operator[](int index) {
 	return at(index);
 }
-wchar_t& RString::front() {
+wchar_t& RStl::RString::front() {
 	return at(0);
 }
-wchar_t& RString::back() {
+wchar_t& RStl::RString::back() {
 	return at(_len_ - 1);
 }
-char16_t* RString::data() {
+char16_t* RStl::RString::data() {
 	return _buf_;
 }
-const char* RString::tochars() {
+const char* RStl::RString::tochars() {
 	char* r = new char[_len_*2+1];
 	int t = _len_ * 2;
 	int c = 0;
@@ -82,21 +81,21 @@ const char* RString::tochars() {
 }
 
 /*--------------------size--------------------*/
-int RString::size()const {
+int RStl::RString::size()const {
 	return _len_;
 }
-bool RString::empty() const {
+bool RStl::RString::empty() const {
 	return _len_ == 0;
 }
 
 /*--------operation-------*/
-void RString::clear() {
-	pool.Free(_buf_);
+void RStl::RString::clear() {
+	MemoryPool::Free(_buf_);
 	_buf_ = nullptr;
 	_len_ = 0;
 	_cap_ = 0;
 }
-RString& RString::erase(USHORT index , USHORT count) {
+RStl::RString& RStl::RString::erase(USHORT index , USHORT count) {
 	if (index + count > _len_) {
 		_buf_[index] = 0;
 		return *this;
@@ -107,52 +106,52 @@ RString& RString::erase(USHORT index , USHORT count) {
 	return *this;
 }
 
-RString& RString::insert(USHORT index, char c, USHORT size) {
+RStl::RString& RStl::RString::insert(USHORT index, char c, USHORT size) {
 	return _insert(index, size, c);
 }
-RString& RString::insert(USHORT index, wchar_t c, USHORT size) {
+RStl::RString& RStl::RString::insert(USHORT index, wchar_t c, USHORT size) {
 	return _insert(index, size, c);
 }
-RString& RString::insert(USHORT index, char16_t c, USHORT size) {
+RStl::RString& RStl::RString::insert(USHORT index, char16_t c, USHORT size) {
 	return _insert(index, size, c);
 }
 /*
-RString& RString::insert(USHORT index, const char* s) {
+RString& RStl::RString::insert(USHORT index, const char* s) {
 	return _insert(index, s);
 }
-RString& RString::insert(USHORT index, const wchar_t* s) {
+RString& RStl::RString::insert(USHORT index, const wchar_t* s) {
 	return _insert(index, s);
 }
-RString& RString::insert(USHORT index, const char16_t* s) {
+RString& RStl::RString::insert(USHORT index, const char16_t* s) {
 	return _insert(index, s);
 }
-RString& RString::insert(USHORT index, const char32_t* s) {
+RString& RStl::RString::insert(USHORT index, const char32_t* s) {
 	return _insert(index, s);
 }
 */
-RString& RString::insert(USHORT index, const RString& s) {
+RStl::RString& RStl::RString::insert(USHORT index, const RString& s) {
 	return _insert(index, s);
 }
 
-RString& RString::push_back(char c, USHORT count) {
+RStl::RString& RStl::RString::push_back(char c, USHORT count) {
 	return _insert(_len_,count, c);
 }
-RString& RString::push_back(wchar_t c, USHORT count) {
+RStl::RString& RStl::RString::push_back(wchar_t c, USHORT count) {
 	return _insert(_len_, count, c);
 }
-RString& RString::push_back(char16_t c, USHORT count) {
+RStl::RString& RStl::RString::push_back(char16_t c, USHORT count) {
 	return _insert(_len_, count, c);
 }
-RString& RString::push_back(const RString& s) {
+RStl::RString& RStl::RString::push_back(const RString& s) {
 	return _insert(_len_, s);
 }
-RString& RString::pop_back() {
+RStl::RString& RStl::RString::pop_back() {
 	return erase(_len_ - 1, 1);
 }
-RString& RString::operator+=(const RString& s) {
+RStl::RString& RStl::RString::operator+=(const RString& s) {
 	return _insert(_len_, s);
 }
-int RString::compare(const RString& str)const  {
+int RStl::RString::compare(const RString& str)const  {
 	int tLen = _len_ < str._len_ ? _len_ : str._len_;
 	for (int i = 0; i < tLen; i++) {
 		if (_buf_[i] < str._buf_[i]) return 1;
@@ -162,32 +161,32 @@ int RString::compare(const RString& str)const  {
 	else if (_len_ < str._len_) return 1;
 	else return -1;
 }
-bool operator==(const RString& a, const RString& b) {
+bool RStl::operator==(const RString& a, const RString& b) {
 	return a.compare(b) == 0;
 }
-bool operator!=(const RString& a, const RString& b) {
+bool RStl::operator!=(const RString& a, const RString& b) {
 	return a.compare(b) != 0;
 }
-bool operator<(const RString& a, const RString& b) {
+bool RStl::operator<(const RString& a, const RString& b) {
 	return a.compare(b) == 1;
 }
-bool operator>(const RString& a, const RString& b) {
+bool RStl::operator>(const RString& a, const RString& b) {
 	return a.compare(b) == -1;
 }
-bool operator<=(const RString& a, const RString& b) {
+bool RStl::operator<=(const RString& a, const RString& b) {
 	int t = a.compare(b);
 	return t == 0 || t == 1;
 }
-bool operator>=(const RString& a, const RString& b) {
+bool RStl::operator>=(const RString& a, const RString& b) {
 	int t = a.compare(b);
 	return t == 0 || t == -1;
 }
-RString operator+(const RString& a, const RString& b) {
+RStl::RString RStl::operator+(const RString& a, const RString& b) {
 	RString r(a);
 	return r.push_back(b);
 }
 
-std::wostream& operator<<(std::wostream& os, const RString& s)
+std::wostream& RStl::operator<<(std::wostream& os, const RString& s)
 {
 	for (USHORT i = 0; i < s._len_; i++) {
 		os << (wchar_t)s._buf_[i];
@@ -195,7 +194,7 @@ std::wostream& operator<<(std::wostream& os, const RString& s)
 	}
 	return os;
 }
-std::ostream& operator<<(std::ostream& os, const RString& s)
+std::ostream& RStl::operator<<(std::ostream& os, const RString& s)
 {
 	int t = s._len_ * 2;
 	char* tBuf = (char*)s._buf_;
@@ -208,7 +207,7 @@ std::ostream& operator<<(std::ostream& os, const RString& s)
 
 
 template<typename _Char>
-RString& RString::_insert(USHORT index, USHORT size, _Char c) {
+RStl::RString& RStl::RString::_insert(USHORT index, USHORT size, _Char c) {
 	static_assert((std::is_same<_Char, char>::value)
 		|| (std::is_same<_Char, wchar_t>::value)
 		|| (std::is_same<_Char, char16_t>::value)
@@ -220,7 +219,7 @@ RString& RString::_insert(USHORT index, USHORT size, _Char c) {
 	char16_t tc = (char16_t)c;
 	int nLen = _len_ + size +1;
 	if (nLen > _cap_) {
-		zone t=pool.Ralloc(_len_,nLen);
+		zone t=MemoryPool::Ralloc(_len_,nLen);
 		/*
 		if (nLen < 64) {
 			t = pool.Alloc((nLen) * 2);
@@ -251,7 +250,7 @@ RString& RString::_insert(USHORT index, USHORT size, _Char c) {
 			tp[c] = _buf_[i];
 			c++;
 		}
-		pool.Free(_buf_);
+		MemoryPool::Free(_buf_);
 		_buf_ = tp;
 		_len_ = nLen - 1;
 		_cap_ = t.cap/2;
@@ -268,7 +267,7 @@ RString& RString::_insert(USHORT index, USHORT size, _Char c) {
 	return *this;
 }
 
-RString& RString::_insert(USHORT index,const RString& s) {
+RStl::RString& RStl::RString::_insert(USHORT index,const RString& s) {
 	if (index > _len_) {
 		throw std::out_of_range("out of range");
 		return *this;
@@ -276,7 +275,7 @@ RString& RString::_insert(USHORT index,const RString& s) {
 	USHORT size = s.size();
 	int nLen = _len_ + size + 1;
 	if (nLen > _cap_) {
-		zone t = pool.Ralloc(_len_, nLen);
+		zone t = MemoryPool::Ralloc(_len_, nLen);
 		char16_t* tp = (char16_t*)t.pointer;
 		int c = 0;
 		for (int i = 0; i < index; i++) {
@@ -291,7 +290,7 @@ RString& RString::_insert(USHORT index,const RString& s) {
 			tp[c] = _buf_[i];
 			c++;
 		}
-		pool.Free(_buf_);
+		MemoryPool::Free(_buf_);
 		_buf_ = tp;
 		_len_ = nLen - 1;
 		_cap_ = t.cap / 2;
@@ -310,17 +309,17 @@ RString& RString::_insert(USHORT index,const RString& s) {
 }
 
 template<typename _Sp>
-void RString::assign_str(const _Sp* s) {
+void RStl::RString::assign_str(const _Sp* s) {
 	static_assert((std::is_same<_Sp, char>::value)
 		|| (std::is_same<_Sp, wchar_t>::value)
 		|| (std::is_same<_Sp,char16_t>::value)
 		, "not pointer to chars");
-	ErrorType e = pool.Free(_buf_);
+	ErrorType e = MemoryPool::Free(_buf_);
 	_buf_ = nullptr;
 	_len_ = 0;
 	if (s != nullptr) {
 		USHORT len = str_len(s);
-		zone r = pool.Alloc((len + 1) * 2);
+		zone r = MemoryPool::Alloc((len + 1) * 2);
 		_buf_ = (char16_t*)r.pointer;
 		_cap_ = r.cap/2;
 		if (_buf_ == nullptr) {
@@ -337,15 +336,15 @@ void RString::assign_str(const _Sp* s) {
 }
 
 template<>
-void RString::assign_str(const char32_t* s) {
-	ErrorType e = pool.Free(_buf_);
+void RStl::RString::assign_str(const char32_t* s) {
+	ErrorType e = MemoryPool::Free(_buf_);
 	_buf_ = nullptr;
 	_len_ = 0;
 	_cap_ = 0;
 	if (s != nullptr) {
 		USHORT len = str_len(s)*2;
 		char16_t* t = (char16_t*)s;
-		zone r = pool.Alloc((len + 1) * 2);
+		zone r = MemoryPool::Alloc((len + 1) * 2);
 		_buf_ = (char16_t*)r.pointer;
 		_cap_ = r.cap/2;
 		if (_buf_ == nullptr) {
