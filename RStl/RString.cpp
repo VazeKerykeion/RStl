@@ -98,11 +98,13 @@ void RStl::RString::clear() {
 RStl::RString& RStl::RString::erase(USHORT index , USHORT count) {
 	if (index + count > _len_) {
 		_buf_[index] = 0;
+		_len_ = index;
 		return *this;
 	}
 	for (int i = index; i + count <= _len_; i++) {
 		_buf_[i] = _buf_[i + count];
 	}
+	_len_ -= count;
 	return *this;
 }
 
@@ -355,6 +357,23 @@ RStl::RString& RStl::RString::_insert(USHORT index,const RString& s) {
 	}
 	return *this;
 
+}
+
+RStl::RString RStl::RString::toRString(const RStl::RString& t) {
+	return RStl::RString(t);
+}
+RStl::RString RStl::RString::toRString(long long t) {
+	RStl::RString r;
+	int n = t;
+	if (n == 0) {
+		r.push_back('0');
+	}
+	while (n > 0) {
+		char16_t i = n % 10 + '0';
+		r.push_back(i);
+		n = n / 10;
+	}
+	return r;
 }
 
 template<typename _Sp>

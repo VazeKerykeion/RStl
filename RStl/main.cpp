@@ -16,8 +16,10 @@ void test2() {
 		RStl::RString t = RStl::RString("hello") + RStl::RString("world");
 	}
 }
+
 int main()
 {	
+	/*
 	time_t timer1, timer2;
 	time(&timer1);
 	test1();
@@ -28,5 +30,9 @@ int main()
 	time(&timer2);
 	std::cout << difftime(timer2, timer1) << std::endl;
 	system("pause");
+	*/
+	RStl::RString s("he%1,wor%99");
+	s.arg("llo").arg("ld");
+	std::cout << s;
 	return 0;
 }
