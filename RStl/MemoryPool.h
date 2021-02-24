@@ -3,11 +3,18 @@
 #define MEMPOOL_ALIGNMENT 8
 #define USHORT unsigned short
 #define ULONG unsigned long
+struct zone {
+	void* pointer;
+	int cap;
+	zone() :pointer(nullptr), cap(0) {};
+	zone(void* p, int l) :pointer(p), cap(l) {};
+	~zone() {};
+};
 enum class ErrorType
 {
 	Success,
 	NullPointer,
-	NotExist
+	NotFound
 };
 struct MemoryBlock
 {
@@ -38,8 +45,9 @@ private:
 public:
 	MemoryPool(USHORT _nUintSize=8, USHORT _nGrowSize = 1024);
 	~MemoryPool();
-	void* Alloc(USHORT _size);
-	void* HeapAlloc(USHORT _size);
+	zone Alloc(USHORT _size);
+	zone Ralloc(USHORT origin, USHORT nSize);
+	zone HeapAlloc(USHORT _size);
 	ErrorType Free(void* p);
 	ErrorType Free(void* p, USHORT _size);
 };

@@ -1,4 +1,5 @@
 #include "MemoryPool.h"
+
 MemoryBlock::MemoryBlock(USHORT _nTypes, USHORT _nUnitSize)
 	:nSize(_nTypes* _nUnitSize),
 	nFree(_nTypes - 1),
@@ -29,18 +30,22 @@ MemoryPool::MemoryPool(USHORT _nUnitSize, USHORT _nGrowSize): pBlock(nullptr),nG
 	}
 }
 
-void* MemoryPool::Alloc(USHORT _size) {
+zone MemoryPool::Alloc(USHORT _size) {
 	if (_size >= 128) return HeapAlloc(_size);
-	USHORT index = _size / 8;
+	zone r;
+	USHORT index = _size / nUnitSize;
 	USHORT UnitSize = nUnitSize * (index + 1)+2;
+	
 	USHORT GrowSize = nGrowSize / UnitSize;
  	if (!pBlock[index]) {
-		if (!GrowSize) return nullptr;
+		if (!GrowSize) return r;
 		MemoryBlock* pMyBlock = new(GrowSize, UnitSize) MemoryBlock(GrowSize, UnitSize);
-		if (!pMyBlock) return nullptr;
+		if (!pMyBlock) return r;
 		pMyBlock->pNext = pBlock[index];
 		pBlock[index] = pMyBlock;
-		return (void*)(pMyBlock->aData+2);
+		r.pointer = (void*)(pMyBlock->aData + 2);
+		r.cap = UnitSize-2;
+		return r;
 	}
 	MemoryBlock* pMyBlock = pBlock[index];
 	while (pMyBlock && !pMyBlock->nFree) {
@@ -50,21 +55,43 @@ void* MemoryPool::Alloc(USHORT _size) {
 		char* pFree = pMyBlock->aData + (pMyBlock->nFirst * UnitSize);
 		pMyBlock->nFirst = *((USHORT*)pFree);
 		pMyBlock->nFree--;
-		return (void*)(pFree+2);
+		r.pointer = (void*)(pFree + 2);
+		r.cap = UnitSize-2;
+		return r;
 	}
 	else {
-		if (!GrowSize) return nullptr;
+		if (!GrowSize) return r;
 		pMyBlock = new(GrowSize, UnitSize) MemoryBlock(GrowSize, UnitSize);
-		if (!pMyBlock) return nullptr;
+		if (!pMyBlock) return r;
 		pMyBlock->pNext = pBlock[index];
 		pBlock[index] = pMyBlock;
-		return (void*)(pMyBlock->aData+2);
+		r.pointer = (void*)(pMyBlock->aData + 2);
+		r.cap = UnitSize-2;
+		return r;
 
 	}
-	return nullptr;
+	return r;
 }
-void* MemoryPool::HeapAlloc(USHORT _size) {
+zone MemoryPool::Ralloc(USHORT origin, USHORT nSize) {
+	int size = nSize - origin;
+	if (nSize < 64) {
+		return Alloc((nSize) * 2);
+	}
+	else {
+		if (size < origin / 2) {
+			return Alloc((origin + origin / 2 + 1) * 2);
+		}
+		else if (size >= origin / 2 && size < origin) {
+			return Alloc(4 * origin);
+		}
+		else {
+			return Alloc(4 * size);
+		}
+	}
+}
+zone MemoryPool::HeapAlloc(USHORT _size) {
 
+	return zone(malloc(_size),_size);
 }
 ErrorType MemoryPool::Free(void* pFree) {
 	if (pFree == nullptr) return ErrorType::NullPointer;
@@ -88,6 +115,7 @@ ErrorType MemoryPool::Free(void* pFree) {
 			return ErrorType::Success;
 		}
 	}
+	return ErrorType::NotFound;
 }
 ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
 	if (pFree == nullptr) return ErrorType::NullPointer;
@@ -95,7 +123,7 @@ ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
 		free(pFree);
 		return ErrorType::Success;
 	}
-	USHORT index = _size / 8;
+	USHORT index = (_size-1) / nUnitSize;
 	MemoryBlock* pMyBlock = pBlock[index];
 	while (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
 		((ULONG)pFree >= ((ULONG)pMyBlock->aData + pMyBlock->nSize)))

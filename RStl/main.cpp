@@ -4,17 +4,14 @@
 #include"MemoryPool.h"
 #include"RString.h"
 
-int main() {
-	
+class a {};
 
-	RString test(u"hello");
-	test[1] = u'x';
-	std::wcout << test << std::endl;
+int main()
+{
+	RString test("hello");
+	test.insert(5,",world");
 
-	auto s = test.tochars();
-	
-	std::cout << s << std::endl;
+	std::cout << test;
 
-
-	
+	return 0;
 }
