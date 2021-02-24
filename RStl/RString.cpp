@@ -48,13 +48,13 @@ RStl::RString& RStl::RString::operator=(const RString& s) {
 }
 
 /*---------------Element access---------------*/
-wchar_t& RStl::RString::at(int index) {
+wchar_t& RStl::RString::at(int index)const {
 	if (index >= _len_ || index<0) {
 		throw std::out_of_range("Out of range");
 	}
 	return (wchar_t&)_buf_[index];
 }
-wchar_t& RStl::RString::operator[](int index) {
+wchar_t& RStl::RString::operator[](int index)const{
 	return at(index);
 }
 wchar_t& RStl::RString::front() {
@@ -151,6 +151,15 @@ RStl::RString& RStl::RString::pop_back() {
 RStl::RString& RStl::RString::operator+=(const RString& s) {
 	return _insert(_len_, s);
 }
+RStl::RString RStl::RString::substr(USHORT start, USHORT count) {
+	if (start + count > _len_) count = _len_ - start;
+	RString r;
+	r.insert(0, '0', count);
+	for (int i = 0; i < count; i++) {
+		r[i] = _buf_[i + start];
+	}
+	return r;
+}
 int RStl::RString::compare(const RString& str)const  {
 	int tLen = _len_ < str._len_ ? _len_ : str._len_;
 	for (int i = 0; i < tLen; i++) {
@@ -203,6 +212,38 @@ std::ostream& RStl::operator<<(std::ostream& os, const RString& s)
 		os << tBuf[i];
 	}
 	return os;
+}
+int RStl::RString::find(const RString& s) {
+	if (s.size() > _len_) return -1;
+	int* next = new int[_len_];
+	next[0] = -1;
+	int i = 0;
+	int j = -1;
+	while (i < _len_) {
+		if (j == -1 || _buf_[i] == _buf_[j]) {
+			i++;
+			j++;
+			next[i] = j;
+		}
+		else {
+			j = next[j];
+		}
+	}
+	i = 0;
+	j = 0;
+	while (i < _len_ && j < s.size()) {
+		if (j == -1 || _buf_[i] == s[j]) {
+			i++;
+			j++;
+		}
+		else
+			j = next[j];
+	}
+	if (j == s.size())
+		return i - j;
+	else
+		return -1;
+	
 }
 
 

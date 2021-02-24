@@ -6,12 +6,11 @@
 
 int main()
 {	
-	RStl::RString s;
+	RStl::RString s("hello");
+	auto t = s.substr(2, 2);
+	std::cout << t;
 
-	for (int i = 0; i < 128; i++) {
-		std::cout << i << std::endl;
-		s.push_back('a');
-	}
+	
 
 	return 0;
 }

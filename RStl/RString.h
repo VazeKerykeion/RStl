@@ -23,8 +23,8 @@ namespace RStl {
 		RString& operator=(const RString& s);
 
 		/*-----Element access-----*/
-		wchar_t& at(int index);
-		wchar_t& operator[](int index);
+		wchar_t& at(int index)const;
+		wchar_t& operator[](int index)const;
 		wchar_t& front();
 		wchar_t& back();
 		char16_t* data();
@@ -55,7 +55,9 @@ namespace RStl {
 		RString& push_back(const RString& s);
 		RString& pop_back();
 		RString& operator+=(const RString& s);
+		RString substr(USHORT start, USHORT end);
 		int compare(const RString& str)const;
+
 
 		friend RString operator+(const RString& a, const RString& b);
 		friend std::wostream& operator<<(std::wostream& os, const RString& s);
@@ -67,6 +69,8 @@ namespace RStl {
 		friend bool operator>(const RString& a, const RString& b);
 		friend bool operator<=(const RString& a, const RString& b);
 		friend bool operator>=(const RString& a, const RString& b);
+		/*--------------find---------------*/
+		int find(const RString& s);
 	private:
 		template<typename _Char>
 		RString& _insert(USHORT index, USHORT size, _Char c);
