@@ -49,9 +49,9 @@ namespace RStl {
 		RString& insert(USHORT index, const char32_t* s);
 		*/
 		RString& insert(USHORT index, const RString& s);
-		RString& push_back(char c, USHORT count);
-		RString& push_back(wchar_t c, USHORT count);
-		RString& push_back(char16_t c, USHORT count);
+		RString& push_back(char c, USHORT count=1);
+		RString& push_back(wchar_t c, USHORT count=1);
+		RString& push_back(char16_t c, USHORT count=1);
 		RString& push_back(const RString& s);
 		RString& pop_back();
 		RString& operator+=(const RString& s);
@@ -91,4 +91,25 @@ namespace RStl {
 	bool operator>(const RString& a, const RString& b);
 	bool operator<=(const RString& a, const RString& b);
 	bool operator>=(const RString& a, const RString& b);
+	
+	template<typename T>
+	RString toRString(const T* t) {
+		return RString(t);
+	}
+	template<typename I>
+	RString toRString(I t) {
+		static_assert(std::is_arithmetic<I>::value, "not arithmeic type");
+		RString r;
+		int n = t;
+		if (n == 0) {
+			r.push_back('0');
+		}
+		while (n > 0) {
+			char16_t i = n % 10 + '0';
+			r.push_back(i);
+			n = n / 10;
+		}
+		return r;
+	}
+	
 }

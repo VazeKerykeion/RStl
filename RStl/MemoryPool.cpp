@@ -101,9 +101,9 @@ ErrorType MemoryPool::Free(void* pFree) {
 	pFree = (char*)pFree - 2;
 	for (int i = 0; i < 16; i++) {
 		MemoryBlock* pMyBlock = pool.pBlock[i];
-		if (pMyBlock == nullptr) continue;
-		while (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
-			((ULONG)pFree >= ((ULONG)pMyBlock->aData + pMyBlock->nSize)))
+		//if (pMyBlock == nullptr) continue;
+		while (pMyBlock!=nullptr && (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
+			((ULONG)pFree >= ((ULONG)pMyBlock->aData + pMyBlock->nSize))))
 		{
 			pMyBlock = pMyBlock->pNext;
 		}
@@ -113,12 +113,11 @@ ErrorType MemoryPool::Free(void* pFree) {
 			pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pool.pBlock[i]->aData)) / pool.nUnitSize);
 			return ErrorType::Success;
 		}
-		else {
-			free(pFree);
-			return ErrorType::Success;
-		}
 	}
-	return ErrorType::NotFound;
+	std::cout << "free from heap" << std::endl;
+	pFree = (char*)pFree + 2;
+	free(pFree);
+	return ErrorType::Success;
 }
 ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
 	MemoryPool& pool = GetPool();
@@ -129,8 +128,8 @@ ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
 	}
 	USHORT index = (_size-1) / pool.nUnitSize;
 	MemoryBlock* pMyBlock = pool.pBlock[index];
-	while (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
-		((ULONG)pFree >= ((ULONG)pMyBlock->aData + pMyBlock->nSize)))
+	while (pMyBlock != nullptr && (((ULONG)pMyBlock->aData > (ULONG)pFree) ||
+		((ULONG)pFree >= ((ULONG)pMyBlock->aData + pMyBlock->nSize))))
 	{
 		pMyBlock = pMyBlock->pNext;
 	}
@@ -140,10 +139,9 @@ ErrorType MemoryPool::Free(void* pFree,USHORT _size) {
 		pMyBlock->nFirst = (USHORT)(((ULONG)pFree - (ULONG)(pool.pBlock[index]->aData)) / pool.nUnitSize);
 		return ErrorType::Success;
 	}
-	else {
-		free(pFree);
-		return ErrorType::Success;
-	}
+
+	free(pFree);
+	return ErrorType::Success;
 	
 }
 MemoryPool::~MemoryPool() {

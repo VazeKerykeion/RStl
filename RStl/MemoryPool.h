@@ -1,5 +1,6 @@
 #pragma once
 #include<memory>
+#include<iostream>
 #define MEMPOOL_ALIGNMENT 8
 #define USHORT unsigned short
 #define ULONG unsigned long

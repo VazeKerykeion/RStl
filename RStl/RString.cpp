@@ -246,20 +246,23 @@ RStl::RString& RStl::RString::_insert(USHORT index, USHORT size, _Char c) {
 			tp[c] = tc;
 			c++;
 		}
-		for (int i = index; i <= _len_; i++) {
-			tp[c] = _buf_[i];
-			c++;
+		if (_buf_ != nullptr) {
+			for (int i = index; i <= _len_; i++) {
+				tp[c] = _buf_[i];
+				c++;
+			}
 		}
 		MemoryPool::Free(_buf_);
 		_buf_ = tp;
 		_len_ = nLen - 1;
 		_cap_ = t.cap/2;
+		_buf_[_len_] = 0;
 	}
 	else {
 		for (int i = _len_; i >= index; i--) {
 			_buf_[i + size] = _buf_[i];
 		}
-		for (int i = index; i < size; i++) {
+		for (int i = index; i < index+size; i++) {
 			_buf_[i] = tc;
 		}
 		_len_ = nLen - 1;
@@ -286,21 +289,24 @@ RStl::RString& RStl::RString::_insert(USHORT index,const RString& s) {
 			tp[c] = s._buf_[i];
 			c++;
 		}
-		for (int i = index; i <= _len_; i++) {
-			tp[c] = _buf_[i];
-			c++;
+		if (_buf_ != nullptr) {
+			for (int i = index; i <= _len_; i++) {
+				tp[c] = _buf_[i];
+				c++;
+			}
 		}
 		MemoryPool::Free(_buf_);
 		_buf_ = tp;
 		_len_ = nLen - 1;
 		_cap_ = t.cap / 2;
+		_buf_[_len_] = 0;
 	}
 	else {
 		for (int i = _len_; i >= index; i--) {
 			_buf_[i + size] = _buf_[i];
 		}
-		for (int i = index; i < size; i++) {
-			_buf_[i] = s._buf_[i];
+		for (int i = 0; i < size; i++) {
+			_buf_[i+index] = s._buf_[i];
 		}
 		_len_ = nLen - 1;
 	}

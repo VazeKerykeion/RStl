@@ -4,14 +4,14 @@
 #include"MemoryPool.h"
 #include"RString.h"
 
-class a {};
-
 int main()
-{
-	RStl::RString test("hello");
-	test.insert(5,",world");
+{	
+	RStl::RString s;
 
-	std::cout << test;
+	for (int i = 0; i < 128; i++) {
+		std::cout << i << std::endl;
+		s.push_back('a');
+	}
 
 	return 0;
 }
