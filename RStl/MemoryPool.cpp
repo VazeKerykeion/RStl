@@ -28,7 +28,7 @@ MemoryPool::MemoryPool(USHORT _nUnitSize, USHORT _nGrowSize): pBlock(nullptr),nG
 		nUnitSize = (_nUnitSize + (MEMPOOL_ALIGNMENT - 1)) & ~(MEMPOOL_ALIGNMENT - 1);
 	}
 	else {
-		nUnitSize = 8;
+		nUnitSize = 16;
 	}
 }
 

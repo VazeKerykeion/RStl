@@ -1,7 +1,7 @@
 #pragma once
 #include<memory>
 #include<iostream>
-#define MEMPOOL_ALIGNMENT 8
+#define MEMPOOL_ALIGNMENT 16
 #define USHORT unsigned short
 #define ULONG unsigned long
 struct zone {
@@ -47,7 +47,7 @@ struct MemoryBlock
 		USHORT nGrowSize;
 	public:
 		static MemoryPool& GetPool() {
-			static MemoryPool pool(8, 1024);
+			static MemoryPool pool(16, 1024);
 			return pool;
 		}
 		~MemoryPool();
