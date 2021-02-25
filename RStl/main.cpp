@@ -19,20 +19,8 @@ void test2() {
 
 int main()
 {	
-	/*
-	time_t timer1, timer2;
-	time(&timer1);
-	test1();
-	time(&timer2);
-	std::cout << difftime(timer2, timer1) << std::endl;
-	time(&timer1);
-	test2();
-	time(&timer2);
-	std::cout << difftime(timer2, timer1) << std::endl;
-	system("pause");
-	*/
-	RStl::RString s("he%1,wor%99");
-	s.arg("llo").arg("ld");
+	RStl::RString s("hello%1");
+	s.arg(123);
 	std::cout << s;
 	return 0;
 }

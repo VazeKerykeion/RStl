@@ -38,6 +38,7 @@ namespace RStl {
 
 		/*--------operation-------*/
 		void clear();
+		RString& reverse();
 		RString& erase(USHORT index = 0, USHORT count = 65535);
 
 		RString& insert(USHORT index, char c, USHORT size = 1);
@@ -65,7 +66,7 @@ namespace RStl {
 			int n = 100;
 			for (int i = 0; i < _len_; i++) {
 				if (_buf_[i] == u'%') {
-					int a, b, tN = 99;
+					int a=10, b=10, tN = 99;
 					if (i < _len_ - 1) a = _buf_[i + 1] - u'0';
 					if (i < _len_ - 2) b = _buf_[i + 2] - u'0';
 					if (a >= 0 && a <= 9) {
